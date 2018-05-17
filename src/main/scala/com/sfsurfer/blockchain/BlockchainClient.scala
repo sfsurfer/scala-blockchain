@@ -18,15 +18,6 @@ class BlockchainClient extends JsonSupport {
   def getNeighborChain(uri: String): Future[GetChainResponse] = {
     val response: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = uri))
     response.flatMap(Unmarshal(_).to[GetChainResponse])
-//    response.onComplete{
-//      case Success(HttpResponse(status, headers, entity, _)) if status.intValue() == 200 => {
-//        Unmarshal(response).to[GetChainResponse]
-//      }
-//      case Success(res) => {
-//        throw new Exception(s"Got unexpected status ${res.status}")
-//      }
-//      case Failure(_) => throw new Exception("Failed to get response")
-//    }
   }
 }
 
