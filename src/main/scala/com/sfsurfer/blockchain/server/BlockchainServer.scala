@@ -7,8 +7,8 @@ import scala.io.StdIn
 
 case class BlockchainServer(provider: BlockchainProvider) extends Routes {
   def run() = {
-    val port: Int = 8081 // TODO: Move to config
-    val bindingFuture = Http().bindAndHandle(route, "localhost")
+    val port: Int = 8081
+    val bindingFuture = Http().bindAndHandle(route, "localhost", port = port)
     StdIn.readLine()
     bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate)
   }

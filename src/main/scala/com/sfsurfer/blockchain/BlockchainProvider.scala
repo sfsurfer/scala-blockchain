@@ -6,16 +6,30 @@ import com.sfsurfer.blockchain.proof.Proof
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 case class BlockchainProvider(id: String, client: BlockchainClient) {
   import BlockchainProvider._
   import Blockchain._
 
-  var neightbors: Set[Node] = Set.empty[Node]
-  def addNeighbor(node: Node) { neightbors +: node.url }
+  val authority = "127.0.0.1:8080"
+  val url = "127.0.0.1:8080"
+  val ourNode = Node(id,url)
+  var allNodes: Vector[Node] = Vector(ourNode)
+  def neighbors: Vector[Node] = allNodes.filter(_.id != ourNode.id)
+  def addNeighbor(node: Node) { allNodes = allNodes :+ node }
+
+
+  def registerNode(): Unit = {
+    val registerUrl = authority + BlockchainClient.RegisterUrl
+    val response = client.registerNode(registerUrl, RegisterNodeRequest(Vector(ourNode)))
+    response.onComplete {
+      case Success(r) => println("Registered Node"); allNodes = r.nodes.toVector // TODO: Add more intelligence here
+      case Failure(f) => println(s"Failed to register node: $f")
+    }
+  }
 
   def mine(): NewBlockSuccess = {
-    println("Mining new block...")
     val currentBlock: Block = blockchain.currentBlock
     val lastBlock = blockchain.lastBlock.getOrElse(handleNoBlocks())
     val lastProof = lastBlock.proof.proof.getOrElse(0)
@@ -43,7 +57,8 @@ case class BlockchainProvider(id: String, client: BlockchainClient) {
   }
 
   def resolveConflicts(): ResolveConflictsResponse = {
-    val replaced = neightbors.map { n =>
+    println("Resolving conflicts")
+    val replaced = neighbors.map { n =>
       for {
         neighborChain <- client.getNeighborChain(n.url)
         isLonger <- if (neighborChain.size > blockchain.size) Future(true) else Future(false)
