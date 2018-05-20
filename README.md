@@ -23,6 +23,3 @@ curl -X POST -H 'Content-Type: application/json' \
   }' \
   http://localhost:8081/transaction/create
 ```
-## To Dos
-* Add tests
-* Work out resolving conflicting chains
