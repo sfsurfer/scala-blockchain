@@ -1,6 +1,7 @@
 package com.sfsurfer.blockchain.server
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
@@ -50,18 +51,21 @@ trait Routes extends JsonSupport {
   }
 
   val nodeRoutes: Route = {
-    get {
+    post {
       path("nodes" / "register") {
         decodeRequest {
           entity(as[RegisterNodeRequest]) { nodes =>
             nodes.nodes.foreach {
               provider.addNeighbor
             }
-            val response = JsString(s"Registered ${nodes.nodes}")
+            val response = RegisterNodeResponse(s"Registered ${nodes.nodes}", provider.neighbors.toSet).toJson
+            println(response)
             complete(response)
           }
         }
       }
+    } ~
+    get {
       path("nodes" / "resolve") {
         complete(provider.resolveConflicts().toJson)
       }

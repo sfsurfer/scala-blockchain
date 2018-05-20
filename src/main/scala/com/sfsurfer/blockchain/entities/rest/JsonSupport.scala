@@ -14,7 +14,8 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val getChainResponseFormat = jsonFormat2(GetChainResponse)
   implicit val addTransactionResponseFormat = jsonFormat1(AddTransactionResponse)
   implicit val addTransactionFailureFormat = jsonFormat1(AddTransactionFailure)
-  implicit val nodeFormat = jsonFormat1(Node)
+  implicit val nodeFormat = jsonFormat2(Node)
   implicit val registerNodeRequestFormat = jsonFormat1(RegisterNodeRequest)
+  implicit val registerNodeResponseFormat = jsonFormat2(RegisterNodeResponse)
   implicit val resolveConflictsResponseFormat = jsonFormat2(ResolveConflictsResponse)
 }
