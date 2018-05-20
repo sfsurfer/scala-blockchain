@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/sfsurfer/scala-blockchain.svg?style=svg)](https://circleci.com/gh/sfsurfer/scala-blockchain)
 # Scala Blockchain
 Basic blockchain implementation build in scala with akka http.
 ## To Start Server
