@@ -12,8 +12,9 @@ case class Blockchain(chain: Vector[Block]) {
 }
 
 object Blockchain extends (Vector[Block] => Blockchain) {
-  var blockchain: Blockchain = this.apply(Vector.empty[Block])
+  private[this] var blockchain: Blockchain = this.apply(Vector.empty[Block])
   def apply(chain: Vector[Block]) = new Blockchain(chain)
+  def getChain(): Blockchain = blockchain
   def addBlock(block: Block): Unit = {
     blockchain = blockchain.copy(chain = blockchain.chain :+ block)
   }

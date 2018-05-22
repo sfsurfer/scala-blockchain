@@ -10,7 +10,6 @@ import scala.util.{Failure, Success}
 
 case class BlockchainProvider(id: String, client: BlockchainClient) {
   import BlockchainProvider._
-  import Blockchain._
 
   val authority = "127.0.0.1:8080"
   val url = "127.0.0.1:8080"
@@ -30,8 +29,8 @@ case class BlockchainProvider(id: String, client: BlockchainClient) {
   }
 
   def mine(): NewBlockSuccess = {
-    val currentBlock: Block = blockchain.currentBlock
-    val lastBlock = blockchain.lastBlock.getOrElse(handleNoBlocks())
+    val currentBlock: Block = Blockchain.getChain().currentBlock
+    val lastBlock = Blockchain.getChain().lastBlock.getOrElse(handleNoBlocks())
     val lastProof = lastBlock.proof.proof.getOrElse(0)
     val proof = Proof.proofOfWork(lastProof)
     val transaction = Transaction("0", id, 1)
@@ -41,18 +40,18 @@ case class BlockchainProvider(id: String, client: BlockchainClient) {
   }
 
   def addTransaction(t: Transaction): Future[AddTransactionResponse] = {
-    blockchain.currentBlock.addTransaction(t) // TODO: Make more robust
+    Blockchain.getChain().currentBlock.addTransaction(t) // TODO: Make more robust
     Future {
-      AddTransactionResponse(AddTransactionSuccessStr(blockchain.currentBlock.index))
+      AddTransactionResponse(AddTransactionSuccessStr(Blockchain.getChain().currentBlock.index))
     }
   }
 
   def getChain: GetChainResponse =
-    GetChainResponse(blockchain.chain, blockchain.chain.size)
+    GetChainResponse(Blockchain.getChain().chain, Blockchain.getChain().chain.size)
 
   def valid_chain(chain: Vector[Block]): Boolean = {
     !chain.zipWithIndex.exists{
-      case (b,i) if i < blockchain.chain.size - 1 => b.hash != blockchain.chain(i+1).previousHash
+      case (b,i) if i < Blockchain.getChain().chain.size - 1 => b.hash != Blockchain.getChain().chain(i+1).previousHash
     }
   }
 
@@ -61,19 +60,19 @@ case class BlockchainProvider(id: String, client: BlockchainClient) {
     val replaced = neighbors.map { n =>
       for {
         neighborChain <- client.getNeighborChain(n.url)
-        isLonger <- if (neighborChain.size > blockchain.size) Future(true) else Future(false)
-        isValid <- if (isLonger) Future(valid_chain(blockchain.chain)) else Future(false)
+        isLonger <- if (neighborChain.size > Blockchain.getChain().size) Future(true) else Future(false)
+        isValid <- if (isLonger) Future(valid_chain(Blockchain.getChain().chain)) else Future(false)
         replaced <- if (isLonger && isValid) {
           println(s"Replacing chain with chain from ${n.url}")
-          Blockchain(blockchain.chain)
+          Blockchain(Blockchain.getChain().chain)
           Future(true)
         } else { Future(false) }
       } yield replaced
     }.contains(Future(true))
     if (replaced) {
-      ResolveConflictsResponse(ResolveConflictsResponse.ChainReplacedMsg, blockchain.chain)
+      ResolveConflictsResponse(ResolveConflictsResponse.ChainReplacedMsg, Blockchain.getChain().chain)
     } else {
-      ResolveConflictsResponse(ResolveConflictsResponse.ChainAuthoritativeMsg, blockchain.chain)
+      ResolveConflictsResponse(ResolveConflictsResponse.ChainAuthoritativeMsg, Blockchain.getChain().chain)
     }
   }
 

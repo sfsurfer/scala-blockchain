@@ -14,10 +14,9 @@ case class BlockchainNode(server: BlockchainServer) {
   private[this] def initializeBlockchain(): Unit = {
     server.provider.registerNode()
     server.provider.resolveConflicts()
-    Blockchain.blockchain.chain match {
+    Blockchain.getChain().chain match {
       case c if c.isEmpty => println("Initializing Blockchain with first node"); Blockchain.addBlock(getInitialBlock()); ()
       case _ => () // do nothing
     }
   }
-
 }
